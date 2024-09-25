@@ -2,6 +2,7 @@
 
 echo -n "App name: "
 read -r APP_NAME
+APP_NAME="${APP_NAME,,}"
 APP_NAME_CAPITAL="${APP_NAME^}"
 APP_NAME_UPPERCASE="${APP_NAME^^}"
 
