@@ -4,6 +4,7 @@ services:
     image: "${APP_NAME}:test"
     ports:
       - "127.0.0.1:${APP_PORT}:${APP_PORT}"
+      - "127.0.0.1:6666:6666"
     environment:
       RUN_MODE: "test"
       KILL_SERVER_PORT: "6666"
