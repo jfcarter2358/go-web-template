@@ -1,8 +1,8 @@
 package page
 
 import (
+	"${APP_NAME}/constants"
 	"net/http"
-	"scaffold/server/constants"
 
 	"github.com/gin-gonic/gin"
 )

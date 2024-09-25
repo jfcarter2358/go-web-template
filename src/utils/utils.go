@@ -3,11 +3,6 @@
 package utils
 
 import (
-	"log"
-	"math/rand"
-	"os/exec"
-	"strconv"
-
 	logger "github.com/jfcarter2358/go-logger"
 
 	"github.com/gin-gonic/gin"
@@ -70,39 +65,6 @@ func RemoveDuplicateValues(stringSlice []string) []string {
 		}
 	}
 	return list
-}
-
-func InstallPackages(packages []string) error {
-	out, err := exec.Command("apt-get", "update", "-y").CombinedOutput()
-	if err != nil {
-		log.Printf("apt-get update: %v", string(out))
-		return err
-	}
-	for _, pkg := range packages {
-		out, err := exec.Command("apt-get", "install", "-y", pkg).CombinedOutput()
-		if err != nil {
-			log.Printf("apt-get install %s: %s", pkg, string(out))
-			return err
-		}
-	}
-	return nil
-}
-
-func GenerateToken(length int) string {
-	token := strconv.FormatInt(rand.Int63(), 16) + strconv.FormatInt(rand.Int63(), 16) + strconv.FormatInt(rand.Int63(), 16) + strconv.FormatInt(rand.Int63(), 16) + strconv.FormatInt(rand.Int63(), 16) + strconv.FormatInt(rand.Int63(), 16) + strconv.FormatInt(rand.Int63(), 16) + strconv.FormatInt(rand.Int63(), 16)
-
-	token = token[:length]
-	return token
-}
-
-func DynamicAPIResponse(ctx *gin.Context, redirect string, status int, response gin.H) {
-	_, err := ctx.Cookie("scaffold_token")
-	if err == nil {
-		logger.Debugf("", "Redirecting to %s", redirect)
-		ctx.Redirect(302, redirect)
-		return
-	}
-	ctx.JSON(status, response)
 }
 
 func MergeDict(a, b map[string]string) map[string]string {

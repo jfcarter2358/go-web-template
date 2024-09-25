@@ -1,4 +1,4 @@
-module scaffold/server
+module ${APP_NAME}
 
 go 1.18
 

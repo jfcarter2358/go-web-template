@@ -23,7 +23,7 @@ push-docker:
     docker tag {app_name} {docker_org}/{app_name}:{version}
     docker push {docker_org}/{app_name}:{version}
 build-docker-test:
-  help: Build Scaffold test Docker image
+  help: Build test Docker image
   cmd: |
     stud set-version
     docker build -t {app_name}:test --no-cache -f src/test.Dockerfile .
@@ -60,10 +60,13 @@ test:
   help: Run tests against deployed images
   cmd: |
     ./test/run.sh
-docs:
-  help: Generate Scaffold documentation
+init-docs:
+  help: Initialize Swagger docs
   cmd: |
     cd src
     swag init
-    cd ../docs
-    make html
+docs:
+  help: Generate Swagger docs
+  cmd: |
+    cd src
+    swag fmt

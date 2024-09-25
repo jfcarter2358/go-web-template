@@ -3,12 +3,12 @@
 package main
 
 import (
+	"${APP_NAME}/config"
 	"context"
 	"crypto/tls"
 	"fmt"
 	"math/rand"
 	"net/http"
-	"scaffold/server/config"
 	"time"
 
 	logger "github.com/jfcarter2358/go-logger"

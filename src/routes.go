@@ -3,10 +3,10 @@
 package main
 
 import (
-	"scaffold/server/api"
-	"scaffold/server/docs"
-	"scaffold/server/middleware"
-	"scaffold/server/page"
+	"${APP_NAME}/api"
+	"${APP_NAME}/docs"
+	"${APP_NAME}/middleware"
+	"${APP_NAME}/page"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
