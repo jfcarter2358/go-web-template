@@ -43,12 +43,12 @@ func run(ctx context.Context, channel chan struct{}) {
 }
 
 //	@title			${APP_NAME_CAPITAL} Swagger API
-//	@version		2.0
+//	@version		0.0.1
 //	@description	${APP_DESCRIPTION}
 //	@termsOfService	http://swagger.io/terms/
 
 //	@contact.name	${AUTHOR_NAME}
-//	@contact.url	https://github.com/jfcarter2358/${APP_NAME}/issues
+//	@contact.url	https://github.com/${GITHUB_ORG}/${APP_NAME}/issues
 //	@contact.email	${AUTHOR_EMAIL}
 
 // @license.name	MIT
