@@ -1,0 +1,113 @@
+.variables:
+  architectures:
+    - amd64
+    - arm64
+  docker_org: ${DOCKER_ORG}
+  platforms:
+    - linux/amd64
+    - linux/arm64
+    - linux/arm/v7
+  version: 0.3.0
+set-version:
+  help: Update server version constant from VERSION file
+  cmd: |
+    version = ?(cat src/VERSION).strip()
+    sed -i 's/const VERSION = ".*"/const VERSION = "{version}"/' src/constants/constants.go
+build-docker-helpers:
+  help: Build Helper Scaffold Docker image
+  cmd: |
+    stud set-server-version
+
+    docker build -t scaffold:build -f helpers/Dockerfile.build .
+    docker build -t scaffold:run --no-cache -f helpers/Dockerfile.run .
+build-docker:
+  help: Build Scaffold Docker image
+  cmd: |
+    stud set-server-version
+    # wsc compile
+    docker build -t scaffold --no-cache -f src/server/Dockerfile .
+push-docker:
+  help: Build Scaffold Docker image
+  cmd: |
+    version = ?(cat src/server/VERSION).strip()
+    docker tag scaffold {docker_org}/scaffold:{version}
+    docker push {docker_org}/scaffold:{version}
+build-docker-test:
+  help: Build Scaffold test Docker image
+  cmd: |
+    stud set-server-version
+    wsc compile
+    docker build -t scaffold:test -f src/server/test.Dockerfile .
+publish:
+  help: Publish Scaffold image
+  cmd: |
+    stud set-server-version
+    
+    wsc compile
+
+    platform_string = ','.join(platforms)
+    version = ?(cat src/server/VERSION).strip()
+
+    print(f"Running build command: docker buildx build --platform {platform_string} -t {docker_org}/scaffold:build -f helpers/Dockerfile.build --push .")
+    docker buildx build --platform {platform_string} -t {docker_org}/scaffold:build -f helpers/Dockerfile.build --push .
+
+    print(f"Running build command: docker buildx build --platform {platform_string} -t {docker_org}/scaffold:run -f helpers/Dockerfile.run --push .")
+    docker buildx build --platform {platform_string} -t {docker_org}/scaffold:run -f helpers/Dockerfile.run --push .
+
+    print(f"Running build command: docker buildx build --platform {platform_string} -t {docker_org}/scaffold:{version} -f src/server/Dockerfile --push .")
+    docker buildx build --platform {platform_string} -t {docker_org}/scaffold:{version} -f src/server/Dockerfile --push .
+
+    print('Done!')
+kill-docker:
+  help: Kill docker-compose deployments
+  cmd: |
+    docker-compose down --remove-orphans
+    docker compose rm -f
+run-docker:
+  help: Deploy local images of Scaffold via docker compose
+  cmd: |
+    docker compose down --remove-orphans
+    docker compose rm -f
+    docker compose up
+run-docker-test:
+  help: Deploy local images of Scaffold via docker compose
+  cmd: |
+    docker compose down --remove-orphans
+    docker compose rm -f
+    docker compose -f test.docker-compose.yaml up
+run-test:
+  help: Deploy local images of Scaffold via docker compose
+  cmd: |
+    ./test/run.sh
+gen-certs:
+  help: Generate local certificates for https testing
+  cmd: |
+    rm -rf temp
+    mkdir -p temp
+
+    echo "Generating root CA"
+    $(openssl genrsa -out temp/rootCA.key 4096)
+    $(openssl req -x509 -new -nodes -key temp/rootCA.key -subj "/C=US/ST=IL/O=Scaffold/CN=scaffold" -sha256 -days 1024 -out temp/rootCA.crt)
+    echo "Done!"
+
+    for idx, node_type in enumerate(['manager', 'worker']):
+
+      echo "Generating {node_type} certs..."
+      $(openssl genrsa -out temp/cert.{node_type}.key 2048)
+      $(openssl req -new -sha256 -key temp/cert.{node_type}.key -subj "/C=US/ST=IL/O=Scaffold/CN=scaffold-{node_type}" -out temp/cert.{node_type}.csr)
+      $(openssl x509 -req -extfile <(printf "subjectAltName=DNS:scaffold-{node_type},DNS:localhost") -in temp/cert.{node_type}.csr -CA temp/rootCA.crt -CAkey temp/rootCA.key -CAcreateserial -out temp/cert.{node_type}.crt -days 500 -sha256)
+      echo "Done!"
+
+      for cert_type in ['crt', 'key']:
+        key_name = f'SCAFFOLD_TLS_CERT_{cert_type.upper()}'
+        encoded = ?(cat temp/cert.{node_type}.{cert_type} | base64 -w 0)
+        sed_idx = idx + 1
+        sed -i 's/{key_name}:.* # {node_type}/{key_name}: "{encoded}" # {node_type}/' test.https.docker-compose.yaml
+        echo "{node_type} cert.{cert_type} set"
+docs:
+  help: Generate Scaffold documentation
+  cmd: |
+    cd src
+    swag init
+    cd ../docs
+    make html
